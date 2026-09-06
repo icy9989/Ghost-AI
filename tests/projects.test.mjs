@@ -9,7 +9,7 @@ function setup(user) {
   const source = ts.transpileModule(readFileSync('lib/projects.ts', 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 } }).outputText;
   vm.runInNewContext(source, { exports, require(name) {
     if (name === 'server-only') return {};
-    if (name === '@clerk/nextjs/server') return { currentUser: async () => user };
+    if (name === '@/lib/project-access') return { getCurrentIdentity: async () => user ? { userId: user.id, primaryEmail: user.emailAddresses.find(email => email.verification?.status === 'verified')?.emailAddress ?? null } : null };
     if (name === 'next/navigation') return { redirect: path => { throw new Error(path); } };
     if (name === '@/lib/prisma') return { prisma: { project: { findMany: async query => { queries.push(JSON.parse(JSON.stringify(query))); return [{ id: queries.length === 1 ? 'owned' : 'shared', name: 'Project' }]; } } } };
     throw new Error(name);

@@ -8,9 +8,19 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Goal
 
-- Editor home wiring (`07-wire-editor-home`) is implemented. All 14 isolated tests, ESLint, and the Webpack production build pass. Plain `npm run build` remains blocked by the environment's Turbopack port-binding restriction; authenticated browser/database integration remains unverified.
+- Shape panel (`12-shape-panel`) implemented. Payload checks, lint, and Webpack production build including TypeScript pass; authenticated browser verification remains pending.
 
 ## Completed
+
+- Shape panel (`12-shape-panel`): bottom-center floating pill toolbar with six draggable Lucide shape buttons; validated shape/width/height payloads; React Flow screen-to-canvas drop conversion; shared node creation through Liveblocks `onNodesChange`. Nodes have shape/timestamp/counter IDs, empty labels, default neutral color, dragged dimensions and shape, and custom `canvasNode` type. Basic renderer displays every shape as a bordered rectangle with centered label.
+
+- Liveblocks authentication 404 fix: installed `@liveblocks/node`, added POST `/api/liveblocks-auth` with server-derived identity, validated room ID, owner/collaborator access checks, and room-scoped access token issuance using `LIVEBLOCKS_SECRET_KEY`. Proxy delegates this endpoint to handler-level JSON authentication errors. Missing config and upstream failures return safe JSON responses.
+
+- Base canvas (`11-base-canvas`) implementation: replaced the workspace placeholder with a client Liveblocks room wrapper using `/api/liveblocks-auth`, current room ID, null cursor presence, loading state, and connection/render error fallbacks. React Flow uses suspense-enabled `useLiveblocksFlow`, empty initial nodes/edges, synced change/connect/delete handlers, loose connections, fitView, MiniMap, and dot background. Added `types/canvas.ts` with label/color/shape data and `canvasNode`/`canvasEdge` types. Workspace page remains server-side; no controls, custom renderers, persistence logic, or AI behavior added.
+
+- Share dialog (`09-share-dialog`): enabled workspace Share action; owner email invitations, collaborator removal, and copy-project-link with two-second `Copied!` feedback; collaborators receive a read-only list. GET/POST/DELETE `/api/projects/[projectId]/collaborators` enforce membership and owner-only mutations server-side. Clerk Backend API enriches names/avatars with email-only fallback. Uses existing collaborator storage; no local user table.
+
+- Workspace shell (`08-editor-workspace-shell`): server component at `/editor/[roomId]`, dedicated Clerk identity/access helpers, sign-in redirect, shared AccessDenied screen for missing/unauthorized projects, project-name navbar with disabled Share action and AI toggle, active-room sidebar highlighting, full-viewport canvas placeholder, and floating AI placeholder. No canvas, Liveblocks, chat, or sharing behavior added.
 
 - Editor home wiring (`07-wire-editor-home`): server-rendered owned/shared project lists, `useProjectActions` API mutations, stable slug/suffix room ID preview, create navigation, rename refresh, and delete redirect/refresh. Sidebar projects link to membership-checked `/editor/[projectId]` pages using the existing editor shell. Failed requests retain the dialog and show an error; shared projects have no mutation actions.
 
@@ -27,6 +37,16 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## In Progress
 
+- Shape panel (`12-shape-panel`) verification: authenticated browser drag/drop and cross-client synchronization remain unverified. Standard `npm run build` reproduces the existing Turbopack internal port-binding restriction; Webpack production build including TypeScript passes.
+
+- Base canvas (`11-base-canvas`) verification: lint, TypeScript, Webpack production build, all 24 existing tests, and diff checks pass. Standard `npm run build` fails on Turbopack internal port binding (`Operation not permitted`). The missing auth endpoint is now implemented; live token issuance, synchronization across clients, and browser rendering remain unverified.
+
+- Liveblocks setup (`10-liveblocks-setup`): awaiting the feature spec contents. Dependencies, cursor presence, canvas integration, and the auth endpoint are now implemented through feature 11 and the explicitly requested authentication fix; the full feature 10 spec remains empty.
+
+- Share dialog (`09-share-dialog`) verification: authenticated browser and live Clerk/database integration remain unverified. Standard `npm run build` fails on the existing Turbopack internal port-binding restriction, including an elevated retry; `npm run build -- --webpack` passes.
+
+- Workspace shell (`08-editor-workspace-shell`) verification: authenticated browser checks at desktop/mobile sizes remain pending; automated checks and Webpack build pass.
+
 - Editor home wiring (`07-wire-editor-home`) verification: authenticated browser/database integration is pending. Plain `npm run build` fails before compilation due to Turbopack internal port binding (`Operation not permitted`); the Webpack production build passes.
 
 - Project APIs (`06-project-apis`) verification: plain `npm run build` is blocked by the existing Turbopack port-binding restriction. Authenticated HTTP/database integration remains unverified; handler tests use isolated Clerk and database mocks.
@@ -36,16 +56,20 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Next Up
 
+- Verify workspace access states, active-room highlighting, and AI sidebar toggling in an authenticated browser.
+
 - Recheck plain `npm run build` in an environment that permits Turbopack's internal port binding.
 - Verify project dialogs in the authenticated editor at desktop and mobile sizes.
 
 ## Open Questions
 
-- Add unresolved product or implementation questions here.
+- What are the exact requirements for feature 10? Save the contents of `context/feature-specs/10-liveblocks-setup.md`, which is currently empty on disk.
 
 ## Architecture Decisions
 
-- Feature 07 adds `lib/projects.ts` because the spec's assumed project-list helper was absent. It reuses the Prisma singleton, fetches both lists server-side, and matches shared projects against verified Clerk email addresses case-insensitively. Workspace membership uses those same lists.
+- Feature 08 uses `getCurrentIdentity` (`userId`, verified `primaryEmail`) and `getAccessibleProject` in `lib/project-access.ts`. Access queries scope the room ID to owner or case-insensitive collaborator email membership. Workspace pages check access before loading sidebar lists, and missing/unauthorized rooms use the same AccessDenied component. Renamed the route parameter from `[projectId]` to `[roomId]`; URLs are unchanged.
+
+- Feature 07 adds `lib/projects.ts` because the spec's assumed project-list helper was absent. It reuses the Prisma singleton, fetches both lists server-side, and matches shared projects against verified Clerk email addresses case-insensitively. Feature 08 now uses a direct access query and the verified primary email for both access and shared lists.
 - Editor create requests supply an optional validated `roomId` (slug plus 12 random hexadecimal characters), stored as the project ID. Omitted room IDs retain cuid defaults; arbitrary client `id` and ownership fields remain ignored. Duplicate room IDs return `409`. Rename does not change the project/room ID. Real-time canvas setup remains outside feature 07.
 
 - Project API response contract: `{ projects }` for lists, `{ project }` for create/rename, `{ success: true }` for delete, and `{ error }` for failures. Create returns `201`; malformed JSON or invalid names return `400`; missing projects return `404`. Omitted create names default to `Untitled Project`; supplied names must be non-empty strings. Project handlers enforce authentication directly so signed-out API requests return `401`.
@@ -55,6 +79,16 @@ Update this file whenever the current phase, active feature, or implementation s
 - Clerk route protection follows a protected-first model; sign-in and sign-up route trees are public. Project API routes use handler-level authentication to return JSON `401` responses instead of proxy redirects/404s.
 
 ## Session Notes
+
+- Shape panel: ESLint, `git diff --check`, and `npm run build -- --webpack` pass. Executed assertions for all six payloads, expected node data/position/dimensions/type, ID format and uniqueness, and malformed/unsupported/invalid-size payload rejection. Default sizes: rectangle 180×100, diamond 180×180, circle 120×120, pill 180×80, cylinder 140×160, hexagon 180×120. Default fill is `#1F1F1F`; text uses the new `--node-text-default` token (`#EDEDED`). Shape-specific node visuals remain deferred as specified.
+
+- Authentication fix: Webpack production build (including TypeScript and the new `/api/liveblocks-auth` route), diff checks, lint, and all 28 tests pass, including four new endpoint tests covering denied access, invalid/wildcard rooms, room-scoped token issuance, and safe failure responses. Tests mock identity, membership, and Liveblocks; live integration remains unverified.
+
+- Base canvas: preserved installed Liveblocks dependencies and configuration scaffold; typed cursor presence and allowed the scaffold’s empty SDK augmentation slots through ESLint. Connection-error listener lives outside suspense so authentication failures can replace the loading state. Error boundary and room subtree reset on room ID changes. No feature 10 auth endpoint was invented from the empty spec.
+
+- Share dialog: all 24 tests pass via `node --test tests/*.test.mjs`. New API and hook tests isolate Clerk, Prisma, React state, HTTP, and clipboard boundaries; cover denied access, owner-only writes, email validation/normalization, profile fallback, invite/remove flows, request errors, and copied-feedback expiry. ESLint, Webpack production build including TypeScript, and `git diff --check` pass. Standard build fails before compilation because Turbopack cannot bind an internal port (`Operation not permitted`), including an elevated retry. Browser interactions and live integration are not verified. Inviting records email-based project access; no email-delivery workflow was specified or added.
+
+- Workspace shell: all 18 tests pass via `node --test tests/*.test.mjs`, including identity selection, scoped access queries, denied/missing results, server-page redirects, and project-context rendering. ESLint, `git diff --check`, and `npm run build -- --webpack` pass with TypeScript and `/editor/[roomId]` in the build output. Removed the stale generated `.next/dev/types/validator.ts` after the route rename referenced the old directory; the subsequent build passed. Standard Turbopack build remains subject to the previously recorded environment restriction and was not rerun for this feature. Browser interactions and live Clerk/database integration remain unverified.
 
 - Editor home wiring: `node --test tests/*.test.mjs` passes all 14 tests covering API authentication/ownership/input validation, room ID persistence, hook create/rename/delete navigation, errors, and server list membership filtering. Tests isolate React state, HTTP, Clerk, and Prisma boundaries; they do not establish browser or live database integration. ESLint, Webpack production build (including TypeScript), and `git diff --check` pass. Plain `npm run build` reproduces the existing Turbopack internal port-binding failure. Existing uncommitted API/auth/Prisma work was preserved.
 

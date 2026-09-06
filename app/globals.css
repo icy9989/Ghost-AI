@@ -64,6 +64,7 @@
 }
 
 :root {
+  --node-text-default: #EDEDED;
   color-scheme: dark;
 
   --bg-base: #080809;

@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import type { ProjectSummary } from "@/lib/project";
 
 interface ProjectSidebarProps {
+  currentRoomId?: string;
   isOpen: boolean;
   onClose: () => void;
   ownedProjects: ProjectSummary[];
@@ -34,16 +35,16 @@ function EmptyProjects({ message }: { message: string }) {
   );
 }
 
-export function ProjectSidebar({ isOpen, onClose, ownedProjects, sharedProjects, onCreate, onRename, onDelete }: ProjectSidebarProps) {
+export function ProjectSidebar({ currentRoomId, isOpen, onClose, ownedProjects, sharedProjects, onCreate, onRename, onDelete }: ProjectSidebarProps) {
   function projectList(isOwner: boolean) {
     const items = isOwner ? ownedProjects : sharedProjects;
     if (!items.length) return <EmptyProjects message={isOwner ? "You don't have any projects yet." : "No projects have been shared with you."} />;
     return (
       <ul className="space-y-1 p-3">
         {items.map((project) => (
-          <li key={project.id} className="flex items-center gap-2 rounded-xl bg-subtle/50 px-3 py-2">
+          <li key={project.id} className={cn("flex items-center gap-2 rounded-xl px-3 py-2", project.id === currentRoomId ? "bg-accent-dim ring-1 ring-brand" : "bg-subtle/50")}>
             <FolderOpen className="size-4 shrink-0 text-copy-muted" />
-            <Link href={`/editor/${encodeURIComponent(project.id)}`} onClick={onClose} className="min-w-0 flex-1 truncate text-sm text-copy-primary" title={project.name}>{project.name}</Link>
+            <Link aria-current={project.id === currentRoomId ? "page" : undefined} href={`/editor/${encodeURIComponent(project.id)}`} onClick={onClose} className="min-w-0 flex-1 truncate text-sm text-copy-primary" title={project.name}>{project.name}</Link>
             {project.isOwner && (
               <div className="flex shrink-0">
                 <Button type="button" variant="ghost" size="icon" aria-label={`Rename ${project.name}`} onClick={() => onRename(project)}><Pencil className="size-4" /></Button>
@@ -82,7 +83,7 @@ export function ProjectSidebar({ isOpen, onClose, ownedProjects, sharedProjects,
         </Button>
       </div>
 
-      <Tabs defaultValue="mine" className="min-h-0 flex-1 gap-0">
+      <Tabs key={currentRoomId ?? "home"} defaultValue={sharedProjects.some((project) => project.id === currentRoomId) ? "shared" : "mine"} className="min-h-0 flex-1 gap-0">
         <TabsList
           variant="line"
           aria-label="Project lists"
