@@ -8,7 +8,12 @@ const isPublicRoute = createRouteMatcher([
   `${signUpUrl}(.*)`,
 ]);
 
+const isProjectApiRoute = createRouteMatcher(["/api/projects", "/api/projects/(.*)"]);
+
 export default clerkMiddleware(async (auth, request) => {
+  // Project handlers return JSON 401 responses instead of Clerk redirects/404s.
+  if (isProjectApiRoute(request)) return;
+
   if (!isPublicRoute(request)) {
     await auth.protect();
   }

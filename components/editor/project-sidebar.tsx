@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { FolderOpen, Pencil, Plus, Trash2, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -10,15 +11,16 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
-import type { MockProject } from "@/hooks/use-project-dialogs";
+import type { ProjectSummary } from "@/lib/project";
 
 interface ProjectSidebarProps {
   isOpen: boolean;
   onClose: () => void;
-  projects: MockProject[];
+  ownedProjects: ProjectSummary[];
+  sharedProjects: ProjectSummary[];
   onCreate: () => void;
-  onRename: (project: MockProject) => void;
-  onDelete: (project: MockProject) => void;
+  onRename: (project: ProjectSummary) => void;
+  onDelete: (project: ProjectSummary) => void;
 }
 
 function EmptyProjects({ message }: { message: string }) {
@@ -32,16 +34,16 @@ function EmptyProjects({ message }: { message: string }) {
   );
 }
 
-export function ProjectSidebar({ isOpen, onClose, projects, onCreate, onRename, onDelete }: ProjectSidebarProps) {
+export function ProjectSidebar({ isOpen, onClose, ownedProjects, sharedProjects, onCreate, onRename, onDelete }: ProjectSidebarProps) {
   function projectList(isOwner: boolean) {
-    const items = projects.filter((project) => project.isOwner === isOwner);
+    const items = isOwner ? ownedProjects : sharedProjects;
     if (!items.length) return <EmptyProjects message={isOwner ? "You don't have any projects yet." : "No projects have been shared with you."} />;
     return (
       <ul className="space-y-1 p-3">
         {items.map((project) => (
           <li key={project.id} className="flex items-center gap-2 rounded-xl bg-subtle/50 px-3 py-2">
             <FolderOpen className="size-4 shrink-0 text-copy-muted" />
-            <span className="min-w-0 flex-1 truncate text-sm text-copy-primary" title={project.name}>{project.name}</span>
+            <Link href={`/editor/${encodeURIComponent(project.id)}`} onClick={onClose} className="min-w-0 flex-1 truncate text-sm text-copy-primary" title={project.name}>{project.name}</Link>
             {project.isOwner && (
               <div className="flex shrink-0">
                 <Button type="button" variant="ghost" size="icon" aria-label={`Rename ${project.name}`} onClick={() => onRename(project)}><Pencil className="size-4" /></Button>

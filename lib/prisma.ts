@@ -3,7 +3,7 @@ import { withAccelerate } from "@prisma/extension-accelerate";
 
 import { PrismaClient } from "@/lib/generated/prisma/client";
 
-function createPrismaClient() {
+function createPrismaClient(): PrismaClient {
   const databaseUrl = process.env.DATABASE_URL;
 
   if (!databaseUrl) {
@@ -11,9 +11,11 @@ function createPrismaClient() {
   }
 
   if (databaseUrl.startsWith("prisma+postgres://")) {
+    // Expose the shared CRUD API; Accelerate's extra generic signatures otherwise
+    // form an uncallable union with the direct client's read methods.
     return new PrismaClient({ accelerateUrl: databaseUrl }).$extends(
       withAccelerate(),
-    );
+    ) as unknown as PrismaClient;
   }
 
   return new PrismaClient({
