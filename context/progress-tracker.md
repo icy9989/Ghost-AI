@@ -8,9 +8,13 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Goal
 
-- Editor home wiring (`07-wire-editor-home`) is implemented. All 14 isolated tests, ESLint, and the Webpack production build pass. Plain `npm run build` remains blocked by the environment's Turbopack port-binding restriction; authenticated browser/database integration remains unverified.
+- Share dialog (`09-share-dialog`) is implemented. All 24 isolated tests, ESLint, and the Webpack production build (including TypeScript) pass. Standard Turbopack build and authenticated integration verification remain blocked/pending as detailed below.
 
 ## Completed
+
+- Share dialog (`09-share-dialog`): enabled workspace Share action; owner email invitations, collaborator removal, and copy-project-link with two-second `Copied!` feedback; collaborators receive a read-only list. GET/POST/DELETE `/api/projects/[projectId]/collaborators` enforce membership and owner-only mutations server-side. Clerk Backend API enriches names/avatars with email-only fallback. Uses existing collaborator storage; no local user table.
+
+- Workspace shell (`08-editor-workspace-shell`): server component at `/editor/[roomId]`, dedicated Clerk identity/access helpers, sign-in redirect, shared AccessDenied screen for missing/unauthorized projects, project-name navbar with disabled Share action and AI toggle, active-room sidebar highlighting, full-viewport canvas placeholder, and floating AI placeholder. No canvas, Liveblocks, chat, or sharing behavior added.
 
 - Editor home wiring (`07-wire-editor-home`): server-rendered owned/shared project lists, `useProjectActions` API mutations, stable slug/suffix room ID preview, create navigation, rename refresh, and delete redirect/refresh. Sidebar projects link to membership-checked `/editor/[projectId]` pages using the existing editor shell. Failed requests retain the dialog and show an error; shared projects have no mutation actions.
 
@@ -27,6 +31,10 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## In Progress
 
+- Share dialog (`09-share-dialog`) verification: authenticated browser and live Clerk/database integration remain unverified. Standard `npm run build` fails on the existing Turbopack internal port-binding restriction, including an elevated retry; `npm run build -- --webpack` passes.
+
+- Workspace shell (`08-editor-workspace-shell`) verification: authenticated browser checks at desktop/mobile sizes remain pending; automated checks and Webpack build pass.
+
 - Editor home wiring (`07-wire-editor-home`) verification: authenticated browser/database integration is pending. Plain `npm run build` fails before compilation due to Turbopack internal port binding (`Operation not permitted`); the Webpack production build passes.
 
 - Project APIs (`06-project-apis`) verification: plain `npm run build` is blocked by the existing Turbopack port-binding restriction. Authenticated HTTP/database integration remains unverified; handler tests use isolated Clerk and database mocks.
@@ -35,6 +43,8 @@ Update this file whenever the current phase, active feature, or implementation s
 - Logout redirect fix: configured the public sign-in destination; authenticated browser verification of the reported intermittent RSC warning remains pending.
 
 ## Next Up
+
+- Verify workspace access states, active-room highlighting, and AI sidebar toggling in an authenticated browser.
 
 - Recheck plain `npm run build` in an environment that permits Turbopack's internal port binding.
 - Verify project dialogs in the authenticated editor at desktop and mobile sizes.
@@ -45,7 +55,9 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Architecture Decisions
 
-- Feature 07 adds `lib/projects.ts` because the spec's assumed project-list helper was absent. It reuses the Prisma singleton, fetches both lists server-side, and matches shared projects against verified Clerk email addresses case-insensitively. Workspace membership uses those same lists.
+- Feature 08 uses `getCurrentIdentity` (`userId`, verified `primaryEmail`) and `getAccessibleProject` in `lib/project-access.ts`. Access queries scope the room ID to owner or case-insensitive collaborator email membership. Workspace pages check access before loading sidebar lists, and missing/unauthorized rooms use the same AccessDenied component. Renamed the route parameter from `[projectId]` to `[roomId]`; URLs are unchanged.
+
+- Feature 07 adds `lib/projects.ts` because the spec's assumed project-list helper was absent. It reuses the Prisma singleton, fetches both lists server-side, and matches shared projects against verified Clerk email addresses case-insensitively. Feature 08 now uses a direct access query and the verified primary email for both access and shared lists.
 - Editor create requests supply an optional validated `roomId` (slug plus 12 random hexadecimal characters), stored as the project ID. Omitted room IDs retain cuid defaults; arbitrary client `id` and ownership fields remain ignored. Duplicate room IDs return `409`. Rename does not change the project/room ID. Real-time canvas setup remains outside feature 07.
 
 - Project API response contract: `{ projects }` for lists, `{ project }` for create/rename, `{ success: true }` for delete, and `{ error }` for failures. Create returns `201`; malformed JSON or invalid names return `400`; missing projects return `404`. Omitted create names default to `Untitled Project`; supplied names must be non-empty strings. Project handlers enforce authentication directly so signed-out API requests return `401`.
@@ -55,6 +67,10 @@ Update this file whenever the current phase, active feature, or implementation s
 - Clerk route protection follows a protected-first model; sign-in and sign-up route trees are public. Project API routes use handler-level authentication to return JSON `401` responses instead of proxy redirects/404s.
 
 ## Session Notes
+
+- Share dialog: all 24 tests pass via `node --test tests/*.test.mjs`. New API and hook tests isolate Clerk, Prisma, React state, HTTP, and clipboard boundaries; cover denied access, owner-only writes, email validation/normalization, profile fallback, invite/remove flows, request errors, and copied-feedback expiry. ESLint, Webpack production build including TypeScript, and `git diff --check` pass. Standard build fails before compilation because Turbopack cannot bind an internal port (`Operation not permitted`), including an elevated retry. Browser interactions and live integration are not verified. Inviting records email-based project access; no email-delivery workflow was specified or added.
+
+- Workspace shell: all 18 tests pass via `node --test tests/*.test.mjs`, including identity selection, scoped access queries, denied/missing results, server-page redirects, and project-context rendering. ESLint, `git diff --check`, and `npm run build -- --webpack` pass with TypeScript and `/editor/[roomId]` in the build output. Removed the stale generated `.next/dev/types/validator.ts` after the route rename referenced the old directory; the subsequent build passed. Standard Turbopack build remains subject to the previously recorded environment restriction and was not rerun for this feature. Browser interactions and live Clerk/database integration remain unverified.
 
 - Editor home wiring: `node --test tests/*.test.mjs` passes all 14 tests covering API authentication/ownership/input validation, room ID persistence, hook create/rename/delete navigation, errors, and server list membership filtering. Tests isolate React state, HTTP, Clerk, and Prisma boundaries; they do not establish browser or live database integration. ESLint, Webpack production build (including TypeScript), and `git diff --check` pass. Plain `npm run build` reproduces the existing Turbopack internal port-binding failure. Existing uncommitted API/auth/Prisma work was preserved.
 
