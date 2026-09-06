@@ -35,6 +35,7 @@
 - Projects can include additional collaborators.
 - Only authenticated users can access protected routes.
 - Only the owner or a collaborator can mutate project resources.
+- Renaming or deleting a project is restricted to its owner; the editor lists owned projects and projects shared with verified Clerk email addresses. GET /api/projects continues to list owned projects only.
 - Liveblocks room tokens are issued only after verifying project membership.
 
 ## Starter System Designs
@@ -66,3 +67,9 @@
 3. Auth and ownership are enforced at every mutation boundary.
 4. Client components are used only where browser interactivity or real-time state requires them.
 5. The canvas schema must remain consistent between user-created content and imported templates.
+
+## Editor Project Wiring
+
+- Server pages load project lists through `lib/projects.ts` using the existing Prisma singleton; no project-list helper existed before feature 07.
+- New editor projects use a slug plus a short random suffix as both the database ID and future Liveblocks room ID. POST accepts a validated optional `roomId`; omitted IDs retain the Prisma cuid default. IDs remain stable on rename.
+- `/editor/[projectId]` is the workspace destination, with membership checked server-side. This feature renders the existing editor shell; real-time canvas integration remains a later feature.
