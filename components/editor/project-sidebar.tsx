@@ -1,6 +1,6 @@
 "use client";
 
-import { FolderOpen, Plus, X } from "lucide-react";
+import { FolderOpen, Pencil, Plus, Trash2, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -10,10 +10,15 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
+import type { MockProject } from "@/hooks/use-project-dialogs";
 
 interface ProjectSidebarProps {
   isOpen: boolean;
   onClose: () => void;
+  projects: MockProject[];
+  onCreate: () => void;
+  onRename: (project: MockProject) => void;
+  onDelete: (project: MockProject) => void;
 }
 
 function EmptyProjects({ message }: { message: string }) {
@@ -27,7 +32,27 @@ function EmptyProjects({ message }: { message: string }) {
   );
 }
 
-export function ProjectSidebar({ isOpen, onClose }: ProjectSidebarProps) {
+export function ProjectSidebar({ isOpen, onClose, projects, onCreate, onRename, onDelete }: ProjectSidebarProps) {
+  function projectList(isOwner: boolean) {
+    const items = projects.filter((project) => project.isOwner === isOwner);
+    if (!items.length) return <EmptyProjects message={isOwner ? "You don't have any projects yet." : "No projects have been shared with you."} />;
+    return (
+      <ul className="space-y-1 p-3">
+        {items.map((project) => (
+          <li key={project.id} className="flex items-center gap-2 rounded-xl bg-subtle/50 px-3 py-2">
+            <FolderOpen className="size-4 shrink-0 text-copy-muted" />
+            <span className="min-w-0 flex-1 truncate text-sm text-copy-primary" title={project.name}>{project.name}</span>
+            {project.isOwner && (
+              <div className="flex shrink-0">
+                <Button type="button" variant="ghost" size="icon" aria-label={`Rename ${project.name}`} onClick={() => onRename(project)}><Pencil className="size-4" /></Button>
+                <Button type="button" variant="ghost" size="icon" className="text-destructive hover:text-destructive" aria-label={`Delete ${project.name}`} onClick={() => onDelete(project)}><Trash2 className="size-4" /></Button>
+              </div>
+            )}
+          </li>
+        ))}
+      </ul>
+    );
+  }
   return (
     <aside
       id="project-sidebar"
@@ -64,16 +89,16 @@ export function ProjectSidebar({ isOpen, onClose }: ProjectSidebarProps) {
           <TabsTrigger value="mine">My Projects</TabsTrigger>
           <TabsTrigger value="shared">Shared</TabsTrigger>
         </TabsList>
-        <TabsContent value="mine" className="min-h-0">
-          <EmptyProjects message="You don't have any projects yet." />
+        <TabsContent value="mine" className="min-h-0 overflow-y-auto">
+          {projectList(true)}
         </TabsContent>
-        <TabsContent value="shared" className="min-h-0">
-          <EmptyProjects message="No projects have been shared with you." />
+        <TabsContent value="shared" className="min-h-0 overflow-y-auto">
+          {projectList(false)}
         </TabsContent>
       </Tabs>
 
       <div className="shrink-0 border-t border-surface-border p-3">
-        <Button type="button" className="w-full">
+        <Button id="sidebar-new-project" type="button" className="w-full" onClick={onCreate}>
           <Plus data-icon="inline-start" />
           New Project
         </Button>
