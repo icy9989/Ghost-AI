@@ -8,7 +8,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Goal
 
-- Authentication is complete; select the next feature unit.
+- Project dialogs are implemented; verify the authenticated editor interactions in the browser.
 
 ## Completed
 
@@ -23,11 +23,12 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## In Progress
 
+- Project dialogs (`04-project-dialogs`): implementation complete with centered editor home, create/rename/delete dialogs, live slug preview, a dedicated state hook, owned-project sidebar actions, and mobile backdrop dismissal. TypeScript, ESLint, and production build pass; authenticated browser verification remains pending.
 - Logout redirect fix: configured the public sign-in destination; authenticated browser verification of the reported intermittent RSC warning remains pending.
 
 ## Next Up
 
-- Select and implement the next feature spec.
+- Verify project dialogs in the authenticated editor at desktop and mobile sizes.
 
 ## Open Questions
 
@@ -41,6 +42,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Session Notes
 
+- Project dialogs: create, rename, and delete update mock projects in memory only, with no API calls or persistence. Rename auto-focuses and submits with Enter; delete uses an input-free destructive confirmation. Shared projects expose no rename/delete actions. Existing navbar and sidebar toggle/tab behavior are preserved. Validation passed: `npm run lint`, `npx tsc --noEmit`, `npm run build -- --webpack`, and `git diff --check`. Browser interactions have not been exercised.
 - Logout redirect: added `ClerkProvider.afterSignOutUrl` using the existing sign-in URL environment variable with `/sign-in` fallback. ESLint and the production build (`--webpack`), including TypeScript checking, passed. No browser was connected for end-to-end logout verification.
 - Production HTTP smoke check on port 3100: signed-out `/editor` returned 307; `/sign-in` returned 500 with a local proxy socket error. Runtime verification remains incomplete.
 

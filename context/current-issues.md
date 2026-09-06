@@ -7,11 +7,3 @@ Error: aborted
   code: 'ECONNRESET'
 }
 
-Sometimes 
-
-## Logout redirect fix
-
-- Configured `ClerkProvider.afterSignOutUrl` to use `NEXT_PUBLIC_CLERK_SIGN_IN_URL`, falling back to `/sign-in`. Logout now targets the public auth route directly instead of the protected `/` route.
-- ESLint and the production build (`--webpack`), including TypeScript checking, passed.
-- Browser verification remains pending: no connected browser was available to reproduce logout or confirm that the intermittent RSC request interruption is resolved.
-- Production HTTP smoke check on port 3100: signed-out `/editor` returned 307; `/sign-in` returned 500 with `Failed to proxy http://localhost:3100/sign-in` / `socket hang up`. Runtime verification is incomplete.
