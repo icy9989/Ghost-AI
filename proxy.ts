@@ -8,11 +8,11 @@ const isPublicRoute = createRouteMatcher([
   `${signUpUrl}(.*)`,
 ]);
 
-const isProjectApiRoute = createRouteMatcher(["/api/projects", "/api/projects/(.*)"]);
+const isHandledApiRoute = createRouteMatcher(["/api/projects", "/api/projects/(.*)", "/api/liveblocks-auth"]);
 
 export default clerkMiddleware(async (auth, request) => {
-  // Project handlers return JSON 401 responses instead of Clerk redirects/404s.
-  if (isProjectApiRoute(request)) return;
+  // These handlers enforce authentication and return JSON instead of redirects/404s.
+  if (isHandledApiRoute(request)) return;
 
   if (!isPublicRoute(request)) {
     await auth.protect();

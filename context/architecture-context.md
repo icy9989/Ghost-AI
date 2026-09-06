@@ -72,6 +72,6 @@
 
 - Server pages load project lists through `lib/projects.ts` using the existing Prisma singleton; no project-list helper existed before feature 07.
 - New editor projects use a slug plus a short random suffix as both the database ID and future Liveblocks room ID. POST accepts a validated optional `roomId`; omitted IDs retain the Prisma cuid default. IDs remain stable on rename.
-- `/editor/[roomId]` is the workspace destination, with membership checked server-side. This feature renders the existing editor shell; real-time canvas integration remains a later feature.
+- `/editor/[roomId]` is the workspace destination, with membership checked server-side. The editor shell now mounts the feature 11 client canvas room wrapper. React Flow nodes and edges synchronize through `useLiveblocksFlow`; the wrapper targets `/api/liveblocks-auth`, which checks Clerk identity and project membership before issuing a room-scoped Liveblocks access token. The server SDK reads `LIVEBLOCKS_SECRET_KEY`; the client uses endpoint authentication.
 
 - Feature 08 centralizes current identity and owner/collaborator access in `lib/project-access.ts`. Missing and unauthorized rooms render the same AccessDenied screen. Collaborator checks and shared lists use the verified primary email. The AI panel remains a placeholder. Feature 09 enables the navbar Share dialog; collaborator GET/POST/DELETE handlers check membership and restrict mutations to owners. Collaborator emails remain in Prisma, with display names and avatars enriched through Clerk Backend API and email-only fallback.
