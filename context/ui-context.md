@@ -68,7 +68,7 @@ Default node color: `#1F1F1F` with `#EDEDED` text.
 
 ### Edge Style
 
-Smooth-step path with an arrow marker. Default edge color: `#f8fafc`. Stroke width is thin — edges are visually secondary to nodes.
+Custom right-angle edges use the light `--canvas-edge` token, rounded ends, arrowheads, and a solid 2px stroke. Edges dim at rest and brighten on hover or selection, with a wider invisible interaction target. Double-click opens an auto-growing inline label input at the React Flow path midpoint; blur, Enter, and Escape save through collaborative edge data. Saved labels appear as small pills; active unlabeled edges show a faint hint. Connection previews use matching smooth-step routing.
 
 ### Node Shapes
 
@@ -83,7 +83,7 @@ Smooth-step path with an arrow marker. Default edge color: `#f8fafc`. Stroke wid
 
 ### Connection Handles
 
-Small white circular handles, hidden by default, revealed on node hover. Appear at all four sides of a node.
+Small white circular handles, hidden by default, faded in on node hover. Appear at all four sides of a node. Drag between handles to link shapes; each handle can connect to multiple nodes through loose connection mode.
 
 ### Canvas Background
 

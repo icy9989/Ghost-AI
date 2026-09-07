@@ -1,4 +1,4 @@
-import { DEFAULT_NODE_COLOR, NODE_SHAPES, type CanvasNode, type NodeShape } from "@/types/canvas";
+import { DEFAULT_NODE_COLOR, NODE_COLORS, NODE_SHAPES, type CanvasNode, type NodeShape } from "@/types/canvas";
 
 export const SHAPE_DRAG_TYPE = "application/ghost-ai-shape";
 
@@ -40,6 +40,6 @@ export function createShapeNode(payload: ShapePayload, position: CanvasNode["pos
     position,
     width: payload.width,
     height: payload.height,
-    data: { label: "", color: DEFAULT_NODE_COLOR, shape: payload.shape },
+    data: { label: "", color: DEFAULT_NODE_COLOR, textColor: NODE_COLORS[0].textColor, shape: payload.shape },
   };
 }

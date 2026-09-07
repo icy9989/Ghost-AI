@@ -12,7 +12,7 @@ import { useLiveblocksExtension } from "@liveblocks/react-tiptap";
 
 function TextEditor() {
   const liveblocks = useLiveblocksExtension({
-    field: "editor-one",
+    field,
   });
 
   // ...
@@ -31,7 +31,7 @@ function TextEditors() {
 
   const newEditor = useMutation(({ storage }) => {
     const newId = nanoid();
-    storage.get("editorsIds").push(newId);
+    storage.get("editorIds").push(newId);
   }, []);
 
   return (
@@ -39,7 +39,7 @@ function TextEditors() {
       {editorIds.map((editorId) => (
         <TextEditor key={editorId} field={editorId} />
       ))}
-      <button>New editor</button>
+      <button onClick={newEditor}>New editor</button>
     </div>
   );
 }

@@ -8,9 +8,23 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Goal
 
-- Shape panel (`12-shape-panel`) implemented. Payload checks, lint, and Webpack production build including TypeScript pass; authenticated browser verification remains pending.
+- Verify starter templates (`18-starter-template`) in an authenticated browser; implementation and automated checks are complete.
 
 ## Completed
+
+- Starter templates (`18-starter-template`): three typed predefined diagrams (microservices, CI/CD, event-driven), scrollable dialog cards with bounds-fitted previews using the existing shape visuals and palette, and a navbar entry point. Import clears edges and nodes before adding fresh template copies through Liveblocks change handlers in one room batch; the view fits after imported nodes load. No persistence or renderer changes.
+
+- Canvas ergonomics (`17-canvas-ergonomics`): bottom-left pill above the shape panel contains zoom out, fit view, zoom in, a divider, and Liveblocks undo/redo with disabled dimmed states. Viewport actions animate for 200ms. `hooks/useKeyboardShortcuts.ts` handles +/=, -, Cmd/Ctrl+Z, Cmd/Ctrl+Shift+Z, and Cmd/Ctrl+Y through a cleaned-up window listener that skips editable fields and composition. Removed the minimap; shape panel, renderers, and collaborative state setup are preserved.
+
+- Edge behavior (`16-edge-behavior`): four small white, dark-bordered handles fade in on node hover with any-side connections. New connections use `canvasEdge` with arrowheads; existing default edges also use the custom renderer. Smooth-step right-angle paths have rounded ends, dim at rest, brighten on hover/selection, and provide a 24px invisible interaction target. Double-click opens a text-growing input positioned by `EdgeLabelRenderer` and `getSmoothStepPath` midpoint coordinates. Blur, Enter, and Escape save `data.label` through React Flow `updateEdgeData` and Liveblocks `onEdgesChange`. Saved labels are pill badges, active empty labels show a faint hint, and label controls isolate canvas pointer and keyboard interactions.
+
+- Node color toolbar (`15-node-color-toolbar`): eight predefined background/text pairs in `NODE_COLORS`, reusing the existing neutral text token. Selected nodes show a React Flow toolbar 14px above the node with accessible swatches, active outlines, and a tight text-colored hover glow. Each click updates both colors through the existing collaborative `updateNodeData` flow. Labels, placeholders, and inline editing inherit the paired color across all shapes; legacy nodes derive text color from their background. Toolbar events isolate drag, pan, and keyboard interactions. New nodes include the default text color.
+
+- Node editing (`14-node-editing`): selected nodes show subtle themed resize controls with an 80×60 minimum. Centered labels and empty-label placeholders open an overlaid textarea on double-click; changes sync as users type through React Flow `updateNodeData` and the existing Liveblocks `onNodesChange` handler. Blur and Escape close editing. Text controls prevent node drag and canvas pan, and the textarea also isolates keyboard and scroll interactions. Resize dimensions use the existing collaborative node-change flow. Shape rendering, shape panel, drag preview, and dropped-node creation remain intact.
+
+- Node linking (user screenshot follow-up): added four connection handles visible on hover/selection, thin curved Bézier links without arrows, and matching connection previews. Existing Liveblocks `onConnect` synchronizes links and supports multiple connections per node. Updated UI context to match the reference.
+
+- Node shapes (`13-node-shape`): shared shape visual renders rectangle/pill/circle with CSS and diamond/hexagon/cylinder with scalable SVG and non-scaling strokes. Borders use subtle/selected theme tokens and labels retain centered rendering. Shape panel supplies native cursor-following drag images using the same visuals and default dimensions; the browser removes the ghost on drop or cancellation. Existing panel layout, drop creation, and collaborative state remain intact.
 
 - Shape panel (`12-shape-panel`): bottom-center floating pill toolbar with six draggable Lucide shape buttons; validated shape/width/height payloads; React Flow screen-to-canvas drop conversion; shared node creation through Liveblocks `onNodesChange`. Nodes have shape/timestamp/counter IDs, empty labels, default neutral color, dragged dimensions and shape, and custom `canvasNode` type. Basic renderer displays every shape as a bordered rectangle with centered label.
 
@@ -36,6 +50,18 @@ Update this file whenever the current phase, active feature, or implementation s
 - Refined the authentication UI to a balanced 50/50 desktop layout with a differentiated surface, product-focused feature list, and explicit Geist font configuration for both app and Clerk UI.
 
 ## In Progress
+
+- Starter templates (`18-starter-template`) verification: ESLint, two new template/replacement tests, all 28 existing tests, diff checks, and Webpack production build including TypeScript pass. Standard `npm run build` fails on the existing Turbopack internal port-binding restriction, including an elevated retry. Browser preview/import and cross-client synchronization/undo remain unverified because no browser is connected.
+
+- Canvas ergonomics (`17-canvas-ergonomics`) verification: ESLint, diff checks, shortcut assertions, and Webpack production build including TypeScript pass. Standard `npm run build` fails on the existing Turbopack internal port-binding restriction, including an elevated retry. Authenticated browser interactions and cross-client history behavior remain unverified.
+
+- Edge behavior (`16-edge-behavior`) verification: ESLint, diff checks, and Webpack production build including TypeScript pass. Standard `npm run build` fails on the existing Turbopack internal port-binding restriction. Browser connection/hover/selection/editing and cross-client synchronization remain unverified.
+
+- Node color toolbar (`15-node-color-toolbar`) verification: ESLint, diff checks, and Webpack production build including TypeScript pass. Standard `npm run build` fails on the existing Turbopack internal port-binding restriction. Visual interaction and cross-client checks remain unverified because no browser is connected.
+
+- Node editing (`14-node-editing`) verification: authenticated browser resizing, inline editing, and cross-client synchronization remain unverified. Standard `npm run build` reproduces the existing Turbopack internal port-binding restriction; Webpack production build including TypeScript passes.
+
+- Node shapes (`13-node-shape`) verification: authenticated browser rendering, native drag preview/drop/cancellation, and cross-client synchronization remain unverified. Standard `npm run build` reproduces the existing Turbopack port-binding restriction; Webpack production build including TypeScript passes.
 
 - Shape panel (`12-shape-panel`) verification: authenticated browser drag/drop and cross-client synchronization remain unverified. Standard `npm run build` reproduces the existing Turbopack internal port-binding restriction; Webpack production build including TypeScript passes.
 
@@ -79,6 +105,28 @@ Update this file whenever the current phase, active feature, or implementation s
 - Clerk route protection follows a protected-first model; sign-in and sign-up route trees are public. Project API routes use handler-level authentication to return JSON `401` responses instead of proxy redirects/404s.
 
 ## Session Notes
+
+- Starter template dialog UI fix: replaced HTML `foreignObject` previews with SVG-only shapes and labels so every element follows the same fitted transform and stays clipped within its card. The dialog title explicitly uses the white primary-text token. Canvas node renderers remain unchanged. ESLint, diff checks, and Webpack production build including TypeScript pass; browser visual verification remains pending.
+
+- Starter templates: installed Liveblocks ignores node/edge `remove` changes, so import uses its existing `onDelete({ nodes, edges })` handler before adding nodes and edges, all inside `room.batch`. Each import clones data and uses fresh IDs. Regression tests cover populated-canvas replacement, repeated imports, endpoint remapping, static template isolation, and fitting after the new nodes render with mocked state boundaries. Preview uses a fixed SVG viewport with bounds derived from positions and dimensions, straight center-to-center lines, and the existing shape visuals. No renderer, persistence, or user-template behavior added.
+
+- Canvas ergonomics: verified all specified shortcut keys with both Meta and Ctrl, 200ms zoom options, editable-field/composition guards, and listener cleanup through isolated hook assertions. Browser zoom modifier combinations retain native behavior. `npm run lint`, `git diff --check`, and `npm run build -- --webpack` pass. Standard and elevated `npm run build` fail because Turbopack cannot bind an internal port (`Operation not permitted`).
+
+- Edge behavior: confirmed installed React Flow merges `defaultEdgeOptions` into connections before invoking Liveblocks `onConnect`; Liveblocks reconciles replacement edge changes from `updateEdgeData`. Verified lint and Webpack production build with TypeScript. Standard build fails processing React Flow CSS because internal port binding is denied (`Operation not permitted`). Feature 16 supersedes the historical curved/no-arrow linking style.
+
+- Node color toolbar: `npm run lint`, `git diff --check`, and `npm run build -- --webpack` pass, including TypeScript. Standard `npm run build` fails while processing React Flow CSS because Turbopack cannot bind an internal port (`Operation not permitted`). Confirmed the installed Liveblocks integration reconciles React Flow replacement/data changes. Browser discovery returned no connected browsers, so live swatch interactions and cross-client synchronization are not verified.
+
+- Node editing: `npm run lint` and `npm run build -- --webpack` pass, including TypeScript. Standard `npm run build` fails while processing React Flow CSS because Turbopack cannot bind an internal port (`Operation not permitted`). Confirmed the installed Liveblocks integration handles React Flow replacement/data updates and resize dimension changes. The label display remains in place invisibly beneath the editing textarea to preserve centered sizing without changing node dimensions.
+
+- Missing edge follow-up: node renderers now explicitly refresh React Flow handle measurements after mount and shape/dimension changes. React Flow can otherwise retain empty bounds for previously measured nodes when handles are introduced, preventing edge path calculation despite white stroke styling. Browser runtime reports no connected browsers, so the reported live-canvas failure remains unconfirmed.
+
+- Edge visibility follow-up: links and drag connection previews now use a solid white 2px stroke via `--canvas-edge`. Canvas-scoped path styling also overrides saved edge stroke styles so existing links receive the same appearance. Browser visibility remains unverified.
+
+- Screenshot node-linking follow-up: ESLint and Webpack production build including TypeScript pass. Browser drag-to-connect and live cross-client synchronization remain unverified.
+
+- PostgreSQL SSL warning: changed the local `DATABASE_URL` in `.env.local` from `sslmode=require` to explicit `sslmode=verify-full`, preserving the installed driver's existing verification behavior. Confirmed the saved URL parses through `pg-connection-string` without warnings. Restart the development server to replace the cached Prisma connection pool. Live database connectivity was not retested.
+
+- Node shapes: `npm run lint`, `git diff --check`, and `npm run build -- --webpack` pass. `npm run build` fails with Turbopack `Operation not permitted` while binding an internal port. Shared `NodeShapeVisual` reads existing node shape/color/selection props; preview sources use `SHAPE_SIZES` and `DEFAULT_NODE_COLOR`, with native drag-image hotspot at the top-left to match existing drop placement. No resize, label editing, or collaborative-state changes added.
 
 - Shape panel: ESLint, `git diff --check`, and `npm run build -- --webpack` pass. Executed assertions for all six payloads, expected node data/position/dimensions/type, ID format and uniqueness, and malformed/unsupported/invalid-size payload rejection. Default sizes: rectangle 180×100, diamond 180×180, circle 120×120, pill 180×80, cylinder 140×160, hexagon 180×120. Default fill is `#1F1F1F`; text uses the new `--node-text-default` token (`#EDEDED`). Shape-specific node visuals remain deferred as specified.
 
