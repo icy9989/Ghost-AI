@@ -64,6 +64,7 @@
 }
 
 :root {
+  --canvas-edge: #ffffff;
   --node-text-default: #EDEDED;
   color-scheme: dark;
 
@@ -112,6 +113,26 @@
   --sidebar-accent-foreground: var(--text-primary);
   --sidebar-border: var(--border-default);
   --sidebar-ring: var(--accent-primary);
+}
+
+/* Apply to existing edges as well as newly drawn connection previews. */
+.editor-canvas .react-flow__edge-path,
+.editor-canvas .react-flow__connection-path {
+  stroke: var(--canvas-edge) !important;
+  stroke-width: 2 !important;
+  stroke-dasharray: none !important;
+  stroke-opacity: 1 !important;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.node-color-swatch[aria-pressed="true"] {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+.node-color-swatch:hover {
+  box-shadow: 0 0 5px 1px color-mix(in srgb, currentColor 55%, transparent);
 }
 
 @layer base {

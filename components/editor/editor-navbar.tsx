@@ -1,13 +1,14 @@
 "use client";
 
 import { UserButton } from "@clerk/nextjs";
-import { PanelLeftClose, PanelLeftOpen, Share2, Sparkles } from "lucide-react";
+import { LayoutTemplate, PanelLeftClose, PanelLeftOpen, Share2, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
 interface EditorNavbarProps {
   projectName?: string;
   onShare?: () => void;
+  onOpenTemplates?: () => void;
   isAiSidebarOpen?: boolean;
   onToggleAiSidebar?: () => void;
   isSidebarOpen: boolean;
@@ -17,6 +18,7 @@ interface EditorNavbarProps {
 export function EditorNavbar({
   projectName,
   onShare,
+  onOpenTemplates,
   isAiSidebarOpen,
   onToggleAiSidebar,
   isSidebarOpen,
@@ -48,6 +50,7 @@ export function EditorNavbar({
       <div className="min-w-0 text-center">{projectName && <h1 className="truncate text-sm font-semibold text-copy-primary" title={projectName}>{projectName}</h1>}</div>
       <div className="flex items-center justify-end gap-2">
         {projectName && <>
+          <Button type="button" variant="outline" onClick={onOpenTemplates} aria-label="Open starter templates" aria-haspopup="dialog"><LayoutTemplate className="size-4" /><span className="hidden sm:inline">Templates</span></Button>
           <Button type="button" variant="outline" onClick={onShare} aria-label="Share project"><Share2 className="size-4" /><span className="hidden sm:inline">Share</span></Button>
           <Button type="button" variant="ghost" size="icon-lg" aria-label={isAiSidebarOpen ? "Close AI sidebar" : "Open AI sidebar"} aria-expanded={isAiSidebarOpen} aria-controls="ai-sidebar" onClick={onToggleAiSidebar}><Sparkles className="size-5" /></Button>
         </>}

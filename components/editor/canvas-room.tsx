@@ -3,7 +3,7 @@
 import { Component, useState, type ReactNode } from "react";
 import { ClientSideSuspense, LiveblocksProvider, RoomProvider, useErrorListener } from "@liveblocks/react/suspense";
 
-import { Canvas } from "@/components/editor/canvas";
+import { Canvas, type CanvasProps } from "@/components/editor/canvas";
 
 function CanvasError() {
   return <p role="alert" className="flex h-full items-center justify-center p-6 text-center text-sm text-copy-muted">Unable to connect to the canvas. Please reload to try again.</p>;
@@ -21,7 +21,7 @@ class CanvasErrorBoundary extends Component<{ children: ReactNode }, { hasError:
   }
 }
 
-function RoomCanvas() {
+function RoomCanvas(props: CanvasProps) {
   const [hasConnectionError, setHasConnectionError] = useState(false);
 
   // Keep the listener outside suspense so authentication failures replace loading.
@@ -35,17 +35,17 @@ function RoomCanvas() {
 
   return (
     <ClientSideSuspense fallback={<p role="status" className="flex h-full items-center justify-center text-sm text-copy-muted">Loading canvas…</p>}>
-      <Canvas />
+      <Canvas {...props} />
     </ClientSideSuspense>
   );
 }
 
-export function CanvasRoom({ roomId }: { roomId: string }) {
+export function CanvasRoom({ roomId, ...props }: CanvasProps & { roomId: string }) {
   return (
     <CanvasErrorBoundary key={roomId}>
       <LiveblocksProvider authEndpoint="/api/liveblocks-auth">
         <RoomProvider id={roomId} initialPresence={{ cursor: null }}>
-          <RoomCanvas />
+          <RoomCanvas {...props} />
         </RoomProvider>
       </LiveblocksProvider>
     </CanvasErrorBoundary>

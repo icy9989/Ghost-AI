@@ -22,6 +22,7 @@ interface EditorShellProps {
 export function EditorShell({ ownedProjects, sharedProjects, activeProject }: EditorShellProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(Boolean(activeProject));
   const [isAiSidebarOpen, setIsAiSidebarOpen] = useState(false);
+  const [isTemplatesOpen, setIsTemplatesOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
   const projectDialogs = useProjectActions(activeProject?.id);
 
@@ -30,13 +31,14 @@ export function EditorShell({ ownedProjects, sharedProjects, activeProject }: Ed
       <EditorNavbar
         projectName={activeProject?.name}
         onShare={() => setIsShareOpen(true)}
+        onOpenTemplates={() => setIsTemplatesOpen(true)}
         isAiSidebarOpen={isAiSidebarOpen}
         onToggleAiSidebar={() => { setIsAiSidebarOpen((open) => !open); setIsSidebarOpen(false); }}
         isSidebarOpen={isSidebarOpen}
         onToggleSidebar={() => { setIsSidebarOpen((isOpen) => !isOpen); setIsAiSidebarOpen(false); }}
       />
       <div className={activeProject ? "relative min-h-0 flex-1" : "relative flex min-h-0 flex-1 items-center justify-center px-6 py-16"} aria-label="Editor canvas">
-        {activeProject ? <CanvasRoom roomId={activeProject.id} /> : <div className="max-w-xl text-center">
+        {activeProject ? <CanvasRoom roomId={activeProject.id} templatesOpen={isTemplatesOpen} onTemplatesOpenChange={setIsTemplatesOpen} /> : <div className="max-w-xl text-center">
           <h1 className="text-2xl font-semibold tracking-tight text-copy-primary sm:text-3xl">Create a project or open an existing one</h1>
           <p className="mt-3 text-sm leading-6 text-copy-muted">Start a new architecture workspace, or choose a project from the sidebar.</p>
           <Button type="button" className="mt-6" onClick={projectDialogs.openCreate}>
