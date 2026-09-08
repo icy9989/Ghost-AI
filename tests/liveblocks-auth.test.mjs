@@ -10,13 +10,18 @@ function setup({ signedIn = true, allowed = true, secret = 'sk_test', status = 2
   const source = ts.transpileModule(readFileSync('app/api/liveblocks-auth/route.ts', 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
   }).outputText;
-  vm.runInNewContext(source, { exports, Response, process: { env: { LIVEBLOCKS_SECRET_KEY: secret } }, require(name) {
+  vm.runInNewContext(source, { exports, Response, assert, process: { env: { LIVEBLOCKS_SECRET_KEY: secret } }, require(name) {
     if (name === '@/lib/project-access') return {
       getCurrentIdentity: async () => signedIn ? { userId: 'user-1' } : null,
       getAccessibleProject: async (room) => { calls.push(['access', room]); return allowed ? { id: room } : null; },
     };
+    if (name === '@clerk/nextjs/server') return { currentUser: async () => ({ id: 'user-1', fullName: 'Ada Lovelace', hasImage: true, imageUrl: 'https://example.com/ada.png' }) };
+    if (name === '@/lib/presence') return { getPresenceColor: () => 'var(--accent-primary)' };
     if (name === '@liveblocks/node') return { Liveblocks: class {
-      prepareSession(id) {
+      prepareSession(id, options) {
+        assert.equal(options.userInfo.name, 'Ada Lovelace');
+        assert.equal(options.userInfo.avatar, 'https://example.com/ada.png');
+        assert.equal(options.userInfo.color, 'var(--accent-primary)');
         calls.push(['identity', id]);
         return {
           FULL_ACCESS: ['room:write'],

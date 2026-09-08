@@ -37,6 +37,7 @@
 - Only the owner or a collaborator can mutate project resources.
 - Renaming or deleting a project is restricted to its owner; the editor lists owned projects and projects shared with the verified primary Clerk email address. GET /api/projects continues to list owned projects only.
 - Liveblocks room tokens are issued only after verifying project membership.
+- Room token user metadata includes the authenticated Clerk profile name/photo and a stable presence color. Ephemeral presence contains canvas-coordinate `cursor` and `thinking`; avatars and remote cursors render only inside the canvas, excluding the active Clerk user ID.
 
 ## Starter System Designs
 
@@ -74,4 +75,9 @@
 - New editor projects use a slug plus a short random suffix as both the database ID and future Liveblocks room ID. POST accepts a validated optional `roomId`; omitted IDs retain the Prisma cuid default. IDs remain stable on rename.
 - `/editor/[roomId]` is the workspace destination, with membership checked server-side. The editor shell now mounts the feature 11 client canvas room wrapper. React Flow nodes and edges synchronize through `useLiveblocksFlow`; the wrapper targets `/api/liveblocks-auth`, which checks Clerk identity and project membership before issuing a room-scoped Liveblocks access token. The server SDK reads `LIVEBLOCKS_SECRET_KEY`; the client uses endpoint authentication.
 
-- Feature 08 centralizes current identity and owner/collaborator access in `lib/project-access.ts`. Missing and unauthorized rooms render the same AccessDenied screen. Collaborator checks and shared lists use the verified primary email. The AI panel remains a placeholder. Feature 09 enables the navbar Share dialog; collaborator GET/POST/DELETE handlers check membership and restrict mutations to owners. Collaborator emails remain in Prisma, with display names and avatars enriched through Clerk Backend API and email-only fallback.
+- Feature 08 centralizes current identity and owner/collaborator access in `lib/project-access.ts`. Missing and unauthorized rooms render the same AccessDenied screen. Collaborator checks and shared lists use the verified primary email. The AI panel is a parent-controlled floating UI shell with local-only chat messages and a static demo spec; generation and persistence are deferred. Feature 09 enables the navbar Share dialog; collaborator GET/POST/DELETE handlers check membership and restrict mutations to owners. Collaborator emails remain in Prisma, with display names and avatars enriched through Clerk Backend API and email-only fallback.
+
+## Canvas Autosave
+
+- Feature 21 reuses `Project.canvasJsonPath` for the private Vercel Blob URL at `canvas/{projectId}.json`; configure `BLOB_READ_WRITE_TOKEN` for a private store. GET/PUT canvas routes require owner or collaborator membership. Reads bypass Blob caching.
+- `hook/use-canvas-autosave.ts` debounces content changes for one second and serializes client writes. Empty rooms restore saved JSON only after a second current-storage emptiness check; populated rooms skip loading. Failed loads block autosave until retry, protecting the saved snapshot. The navbar Save button reports saving/saved/error and retries failures.

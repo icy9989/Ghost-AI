@@ -4,19 +4,17 @@ import { NODE_COLORS, type CanvasNode } from "@/types/canvas";
 
 interface NodeColorToolbarProps {
   id: string;
-  selected: boolean;
   color: string;
   textColor?: string;
 }
 
-export function NodeColorToolbar({ id, selected, color, textColor }: NodeColorToolbarProps) {
+export function NodeColorToolbar({ id, color, textColor }: NodeColorToolbarProps) {
   const { updateNodeData } = useReactFlow<CanvasNode>();
   const activeTextColor = textColor ?? NODE_COLORS.find((pair) => pair.color === color)?.textColor;
 
   return (
     <NodeToolbar
       nodeId={id}
-      isVisible={selected}
       position={Position.Top}
       offset={14}
       role="group"

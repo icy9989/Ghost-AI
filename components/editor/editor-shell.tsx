@@ -1,9 +1,11 @@
 "use client";
 
+import type { CanvasSaveStatus } from "@/lib/canvas-snapshot";
 import { useState } from "react";
-import { Plus, Sparkles, X } from "lucide-react";
+import { Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { AiSidebar } from "@/components/editor/ai-sidebar";
 import { CanvasRoom } from "@/components/editor/canvas-room";
 import { ShareDialog } from "@/components/editor/share-dialog";
 import { ProjectDialogs } from "@/components/editor/project-dialogs";
@@ -24,11 +26,16 @@ export function EditorShell({ ownedProjects, sharedProjects, activeProject }: Ed
   const [isAiSidebarOpen, setIsAiSidebarOpen] = useState(false);
   const [isTemplatesOpen, setIsTemplatesOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<CanvasSaveStatus>("saving");
+  const [saveRequest, setSaveRequest] = useState(0);
   const projectDialogs = useProjectActions(activeProject?.id);
 
   return (
     <main className="flex h-dvh flex-col overflow-hidden bg-base">
       <EditorNavbar
+        isWorkspace={Boolean(activeProject)}
+        saveStatus={saveStatus}
+        onSave={() => setSaveRequest(value => value + 1)}
         projectName={activeProject?.name}
         onShare={() => setIsShareOpen(true)}
         onOpenTemplates={() => setIsTemplatesOpen(true)}
@@ -38,7 +45,7 @@ export function EditorShell({ ownedProjects, sharedProjects, activeProject }: Ed
         onToggleSidebar={() => { setIsSidebarOpen((isOpen) => !isOpen); setIsAiSidebarOpen(false); }}
       />
       <div className={activeProject ? "relative min-h-0 flex-1" : "relative flex min-h-0 flex-1 items-center justify-center px-6 py-16"} aria-label="Editor canvas">
-        {activeProject ? <CanvasRoom roomId={activeProject.id} templatesOpen={isTemplatesOpen} onTemplatesOpenChange={setIsTemplatesOpen} /> : <div className="max-w-xl text-center">
+        {activeProject ? <CanvasRoom onSaveStatus={setSaveStatus} saveRequest={saveRequest} roomId={activeProject.id} templatesOpen={isTemplatesOpen} onTemplatesOpenChange={setIsTemplatesOpen} /> : <div className="max-w-xl text-center">
           <h1 className="text-2xl font-semibold tracking-tight text-copy-primary sm:text-3xl">Create a project or open an existing one</h1>
           <p className="mt-3 text-sm leading-6 text-copy-muted">Start a new architecture workspace, or choose a project from the sidebar.</p>
           <Button type="button" className="mt-6" onClick={projectDialogs.openCreate}>
@@ -60,21 +67,7 @@ export function EditorShell({ ownedProjects, sharedProjects, activeProject }: Ed
         onRename={projectDialogs.openRename}
         onDelete={projectDialogs.openDelete}
       />
-      {activeProject && isAiSidebarOpen && (
-        <>
-          <button type="button" aria-label="Dismiss AI sidebar" className="fixed inset-x-0 top-14 bottom-0 z-30 bg-base/70 backdrop-blur-xs md:hidden" onClick={() => setIsAiSidebarOpen(false)} />
-          <aside id="ai-sidebar" aria-label="AI assistant" className="fixed top-[4.25rem] right-3 bottom-3 z-40 flex w-[min(22rem,calc(100vw-1.5rem))] flex-col rounded-2xl border border-surface-border bg-surface/95 shadow-2xl backdrop-blur">
-            <div className="flex h-14 shrink-0 items-center justify-between border-b border-surface-border px-4">
-              <h2 className="font-semibold text-copy-primary">AI Assistant</h2>
-              <Button type="button" variant="ghost" size="icon" aria-label="Close AI sidebar" onClick={() => setIsAiSidebarOpen(false)}><X className="size-5" /></Button>
-            </div>
-            <div className="flex flex-1 flex-col items-center justify-center gap-3 p-6 text-center text-copy-muted">
-              <Sparkles className="size-8" aria-hidden="true" />
-              <p className="text-sm">AI chat is coming soon.</p>
-            </div>
-          </aside>
-        </>
-      )}
+      {activeProject && <AiSidebar key={activeProject.id} isOpen={isAiSidebarOpen} onClose={() => setIsAiSidebarOpen(false)} />}
       <ProjectDialogs controller={projectDialogs} />
       {activeProject && isShareOpen && <ShareDialog projectId={activeProject.id} projectName={activeProject.name} onClose={() => setIsShareOpen(false)} />}
     </main>

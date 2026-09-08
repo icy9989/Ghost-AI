@@ -8,9 +8,21 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Goal
 
-- Verify starter templates (`18-starter-template`) in an authenticated browser; implementation and automated checks are complete.
+- Canvas autosave (`21-canvas-autosave`) implementation complete; automated checks and Webpack production build pass. Live integration and environment-blocked standard build remain unverified.
 
 ## Completed
+
+- Multi-selection toolbar fix: restored React Flow's default NodeToolbar visibility so color swatches appear only for a single selected node and stay hidden when multiple nodes are selected.
+
+- Canvas multi-delete: enabled empty-pane box selection, full node containment, Ctrl/Cmd-click multi-selection, and Delete/Backspace removal through the existing Liveblocks deletion handler. Space-drag and middle/right-drag pan the canvas. Connected edges are removed with deleted nodes.
+
+- Workspace navbar profile fix: checked Clerk skills; the shared navbar now receives explicit `isWorkspace` context from the editor shell and renders its UserButton only on editor home. The canvas presence UserButton remains available in workspaces.
+
+- Canvas autosave (`21-canvas-autosave`): installed `@vercel/blob`, reused nullable `Project.canvasJsonPath` (actual schema is `prisma/models/project.prisma`; no migration), and added membership-protected GET/PUT canvas routes. Private Blob stores JSON; Prisma stores only its URL. Added `hook/use-canvas-autosave.ts` with one-second debounce, sequential writes, content-only serialization, failure status/retry, and initial-load protection. Populated rooms skip GET entirely; empty rooms recheck current Liveblocks storage before restoring, then fit the loaded nodes. Navbar Save button reports saving/saved/error. Requires `BLOB_READ_WRITE_TOKEN` for a private Blob store.
+
+- AI sidebar shell (`20-ai-sidebar-shell`): extracted `AiSidebar` with parent-controlled visibility, preserved floating geometry/border/shadow and mobile dismissal, and added a right-side transform transition (the placeholder had no animation classes). Added AI Workspace header, shadcn AI Architect/Specs tabs, starter chips that fill the draft, local user-message submission, user/assistant bubble styles, scrollable chat, 72–160px auto-resizing input, Enter submit with composition guard, and Shift+Enter newline. Specs contains a disabled Generate Spec button and static demo card with disabled download. Uses existing palette mappings; no backend, Liveblocks, or AI generation added.
+
+- Presence avatars and live cursors (`19-presence-avator-cursors`): canvas-only top-right participant group with up to five overlapping collaborator avatars, photo/initials fallback, +N overflow, subtle rings, and a conditional divider before a matching 32px Clerk UserButton. Active Clerk session ID filters out all same-user connections; collaborator avatars are display-only and deduplicated by user ID. Authenticated room tokens now carry Clerk profile metadata and a stable theme-based presence color. React Flow mouse move broadcasts unsnapped canvas coordinates, mouse leave clears the cursor, and remote pointers/name badges follow each viewer’s pan/zoom. Shared presence includes `cursor` and `thinking`, initialized to null/false. Shared navbar and node/edge behavior remain unchanged.
 
 - Starter templates (`18-starter-template`): three typed predefined diagrams (microservices, CI/CD, event-driven), scrollable dialog cards with bounds-fitted previews using the existing shape visuals and palette, and a navbar entry point. Import clears edges and nodes before adding fresh template copies through Liveblocks change handlers in one room batch; the view fits after imported nodes load. No persistence or renderer changes.
 
@@ -50,6 +62,12 @@ Update this file whenever the current phase, active feature, or implementation s
 - Refined the authentication UI to a balanced 50/50 desktop layout with a differentiated surface, product-focused feature list, and explicit Geist font configuration for both app and Clerk UI.
 
 ## In Progress
+
+- Canvas autosave (`21-canvas-autosave`) verification: ESLint, 39 tests (including six new persistence tests), and diff checks pass. Standard build first failed downloading fonts; network-enabled retry reproduced the known Turbopack internal port-binding restriction. Webpack production build including TypeScript passes; live authenticated Blob/room checks remain unverified.
+
+- AI sidebar shell (`20-ai-sidebar-shell`) verification: ESLint, all 33 existing tests, diff checks, and Webpack production build including TypeScript pass. Standard `npm run build` fails on the existing Turbopack internal port-binding restriction (`Operation not permitted`). Browser visual and keyboard interactions remain unverified.
+
+- Presence avatars and live cursors (`19-presence-avator-cursors`) verification: ESLint, all 33 tests, diff checks, and Webpack production build including TypeScript pass. Standard `npm run build` still fails on the existing Turbopack internal port-binding restriction, including an elevated retry. No browser is connected; authenticated visual and live cross-client checks remain unverified.
 
 - Starter templates (`18-starter-template`) verification: ESLint, two new template/replacement tests, all 28 existing tests, diff checks, and Webpack production build including TypeScript pass. Standard `npm run build` fails on the existing Turbopack internal port-binding restriction, including an elevated retry. Browser preview/import and cross-client synchronization/undo remain unverified because no browser is connected.
 
@@ -105,6 +123,8 @@ Update this file whenever the current phase, active feature, or implementation s
 - Clerk route protection follows a protected-first model; sign-in and sign-up route trees are public. Project API routes use handler-level authentication to return JSON `401` responses instead of proxy redirects/404s.
 
 ## Session Notes
+
+- Presence/cursors: automated rendering checks cover solo and same-user sessions, conditional divider, Clerk sizing, photo/initials display, five-avatar overflow and duplicate connections, remote-only cursors, matched colors, and pan/zoom projection. Existing canvas integration checks now exercise React Flow mouse event broadcasting and clearing; auth tests verify server-derived profile metadata while preserving access enforcement. Browser discovery returned no connected browsers.
 
 - Starter template dialog UI fix: replaced HTML `foreignObject` previews with SVG-only shapes and labels so every element follows the same fitted transform and stays clipped within its card. The dialog title explicitly uses the white primary-text token. Canvas node renderers remain unchanged. ESLint, diff checks, and Webpack production build including TypeScript pass; browser visual verification remains pending.
 
