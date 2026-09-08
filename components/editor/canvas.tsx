@@ -1,9 +1,11 @@
 "use client";
 
+import { useCanvasAutosave } from "@/hook/use-canvas-autosave";
+import type { CanvasSaveStatus } from "@/lib/canvas-snapshot";
 import { useLiveblocksFlow } from "@liveblocks/react-flow";
-import { useRoom } from "@liveblocks/react/suspense";
+import { useRoom, useUpdateMyPresence } from "@liveblocks/react/suspense";
 import { useEffect, useRef, useState, type DragEvent } from "react";
-import { Background, BackgroundVariant, ConnectionLineType, ConnectionMode, MarkerType, ReactFlow, type ReactFlowInstance } from "@xyflow/react";
+import { Background, BackgroundVariant, ConnectionLineType, ConnectionMode, MarkerType, SelectionMode, ReactFlow, type ReactFlowInstance } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
 import type { CanvasEdge, CanvasNode } from "@/types/canvas";
@@ -11,6 +13,8 @@ import { CanvasNodeRenderer } from "@/components/editor/canvas-node";
 import { CanvasEdgeRenderer } from "@/components/editor/canvas-edge";
 import { ShapePanel } from "@/components/editor/shape-panel";
 import { CanvasControls } from "@/components/editor/canvas-controls";
+import { CanvasPresence } from "@/components/editor/canvas-presence";
+import { CanvasCursors } from "@/components/editor/canvas-cursors";
 import { createShapeNode, parseShapePayload, SHAPE_DRAG_TYPE } from "@/lib/canvas-shapes";
 
 import { StarterTemplatesModal } from "@/components/editor/starter-templates-modal";
@@ -26,12 +30,15 @@ const defaultEdgeOptions = {
 };
 
 export interface CanvasProps {
+  onSaveStatus?: (status: CanvasSaveStatus) => void;
+  saveRequest?: number;
   templatesOpen: boolean;
   onTemplatesOpenChange: (open: boolean) => void;
 }
 
-export function Canvas({ templatesOpen, onTemplatesOpenChange }: CanvasProps) {
+export function Canvas({ templatesOpen, onTemplatesOpenChange, onSaveStatus, saveRequest }: CanvasProps) {
   const room = useRoom();
+  const updateMyPresence = useUpdateMyPresence();
   const pendingFit = useRef<string[] | null>(null);
   const [flow, setFlow] = useState<ReactFlowInstance<CanvasNode, CanvasEdge> | null>(null);
   const { nodes, edges, onNodesChange, onEdgesChange, onConnect, onDelete } =
@@ -40,6 +47,22 @@ export function Canvas({ templatesOpen, onTemplatesOpenChange }: CanvasProps) {
       nodes: { initial: [] },
       edges: { initial: [] },
     });
+
+  useCanvasAutosave({
+    projectId: room.id, nodes, edges, onStatus: onSaveStatus, saveRequest,
+    hasContent: () => {
+      // Read current storage, including remote changes not yet rendered by React.
+      const snapshot = room.getStorageSnapshot() as unknown as { get(key: string): { get(key: string): { size: number } } | undefined } | null;
+      return Boolean(snapshot?.get("flow")?.get("nodes").size || snapshot?.get("flow")?.get("edges").size);
+    },
+    restore: (canvas) => {
+      pendingFit.current = canvas.nodes.map(node => node.id);
+      room.batch(() => {
+        onNodesChange(canvas.nodes.map(item => ({ type: "add", item })));
+        onEdgesChange(canvas.edges.map(item => ({ type: "add", item })));
+      });
+    },
+  });
 
   useEffect(() => {
     const ids = pendingFit.current;
@@ -95,6 +118,17 @@ export function Canvas({ templatesOpen, onTemplatesOpenChange }: CanvasProps) {
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         onDelete={onDelete}
+        selectionOnDrag
+        selectionMode={SelectionMode.Full}
+        panOnDrag={[1, 2]}
+        panActivationKeyCode="Space"
+        multiSelectionKeyCode={["Meta", "Control"]}
+        deleteKeyCode={["Backspace", "Delete"]}
+        onMouseMove={(event) => {
+          if (!flow) return;
+          updateMyPresence({ cursor: flow.screenToFlowPosition({ x: event.clientX, y: event.clientY }, { snapToGrid: false }) });
+        }}
+        onMouseLeave={() => updateMyPresence({ cursor: null })}
         connectionMode={ConnectionMode.Loose}
         defaultEdgeOptions={defaultEdgeOptions}
         connectionLineStyle={edgeStyle}
@@ -103,7 +137,9 @@ export function Canvas({ templatesOpen, onTemplatesOpenChange }: CanvasProps) {
         fitView
       >
         <Background variant={BackgroundVariant.Dots} color="var(--border-default)" bgColor="var(--bg-base)" />
+        <CanvasCursors />
       </ReactFlow>
+      <CanvasPresence />
       <CanvasControls flow={flow} />
       <ShapePanel />
       <StarterTemplatesModal open={templatesOpen} onOpenChange={onTemplatesOpenChange} onImport={importTemplate} />

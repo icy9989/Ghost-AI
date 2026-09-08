@@ -26,7 +26,7 @@ export function CanvasNodeRenderer({ id, data, selected, isConnectable, width, h
 
   return (
     <div className="group relative h-full w-full">
-      <NodeColorToolbar id={id} selected={selected} color={data.color} textColor={data.textColor} />
+      <NodeColorToolbar id={id} color={data.color} textColor={data.textColor} />
       <NodeResizer
         isVisible={selected}
         minWidth={80}

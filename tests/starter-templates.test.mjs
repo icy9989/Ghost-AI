@@ -48,23 +48,35 @@ test('import replaces populated and repeated graphs through deletion before addi
   let effect, frame, batchCount = 0, fitCount = 0;
   const pending = { current: null };
   const calls = [];
-  const flow = { fitView(options) {
+  const presenceUpdates = [];
+  const flow = { screenToFlowPosition(position, options) {
+    assert.equal(options.snapToGrid, false);
+    return { x: (position.x - 100) / 2, y: (position.y - 50) / 2 };
+  }, fitView(options) {
     assert.equal(options.nodes.length, nodes.length);
     assert.ok(options.nodes.every(n => nodes.some(current => current.id === n.id)));
     fitCount++;
   } };
   const jsx = (type, props) => ({ type, props });
   const { Canvas } = load('components/editor/canvas.tsx', {
+    '@/hook/use-canvas-autosave': { useCanvasAutosave() {} },
     react: { useState: () => [flow, () => {}], useRef: () => pending, useEffect: fn => { effect = fn; } },
     'react/jsx-runtime': { jsx, jsxs: jsx },
-    '@liveblocks/react/suspense': { useRoom: () => ({ batch(fn) { batchCount++; fn(); } }) },
+    '@liveblocks/react/suspense': { useUpdateMyPresence: () => update => presenceUpdates.push(update), useRoom: () => ({ batch(fn) { batchCount++; fn(); } }) },
     '@liveblocks/react-flow': { useLiveblocksFlow: () => ({ nodes, edges,
       onDelete(graph) { calls.push('delete'); nodes = nodes.filter(n => !graph.nodes.includes(n)); edges = edges.filter(e => !graph.edges.includes(e)); },
       onNodesChange(changes) { calls.push('nodes'); assert.equal(nodes.length, 0); assert.equal(edges.length, 0); nodes = changes.map(c => c.item); },
       onEdgesChange(changes) { calls.push('edges'); assert.equal(edges.length, 0); edges = changes.map(c => c.item); },
     }) },
-    ...Object.fromEntries(['canvas-node', 'canvas-edge', 'shape-panel', 'canvas-controls', 'starter-templates-modal'].map(name => [`@/components/editor/${name}`, {}])),
+    ...Object.fromEntries(['canvas-node', 'canvas-edge', 'shape-panel', 'canvas-controls', 'canvas-presence', 'canvas-cursors', 'starter-templates-modal'].map(name => [`@/components/editor/${name}`, {}])),
   }, { requestAnimationFrame: fn => { frame = fn; return 1; }, cancelAnimationFrame: () => {} });
+  const canvasTree = Canvas({ templatesOpen: false, onTemplatesOpenChange() {} });
+  const reactFlow = canvasTree.props.children[0];
+  reactFlow.props.onMouseMove({ clientX: 140, clientY: 90 });
+  assert.equal(presenceUpdates[0].cursor.x, 20);
+  assert.equal(presenceUpdates[0].cursor.y, 20);
+  reactFlow.props.onMouseLeave();
+  assert.equal(presenceUpdates[1].cursor, null);
   const original = JSON.stringify(CANVAS_TEMPLATES);
   let previousIds = new Set(['old-node']);
   for (const template of [CANVAS_TEMPLATES[0], CANVAS_TEMPLATES[0], CANVAS_TEMPLATES[2]]) {

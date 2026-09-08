@@ -1,6 +1,8 @@
 import { Liveblocks } from "@liveblocks/node";
+import { currentUser } from "@clerk/nextjs/server";
 
 import { getAccessibleProject, getCurrentIdentity } from "@/lib/project-access";
+import { getPresenceColor } from "@/lib/presence";
 
 export async function POST(request: Request) {
   try {
@@ -30,7 +32,17 @@ export async function POST(request: Request) {
     }
 
     const liveblocks = new Liveblocks({ secret });
-    const session = liveblocks.prepareSession(identity.userId);
+    const user = await currentUser();
+    if (!user || user.id !== identity.userId) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const session = liveblocks.prepareSession(identity.userId, {
+      userInfo: {
+        name: user.fullName || user.username || "Collaborator",
+        ...(user.hasImage ? { avatar: user.imageUrl } : {}),
+        color: getPresenceColor(identity.userId),
+      },
+    });
     session.allow(project.id, session.FULL_ACCESS);
     const { body, status } = await session.authorize();
     if (status !== 200) {

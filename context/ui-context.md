@@ -103,3 +103,11 @@ shadcn/ui on top of Tailwind. No custom design system. Components live in `compo
 ## Icons
 
 Lucide React. Stroke-based icons only — no filled variants. Icon sizes: `h-4 w-4` for inline, `h-5 w-5` for buttons, `h-8 w-8` for feature icons in empty states.
+
+## AI Sidebar Shell
+
+Feature 20 uses the existing token mappings: primary/muted text are `text-copy-primary`/`text-copy-muted`, brand dim is `bg-accent-dim`, and AI accent/text are `bg-ai`/`text-ai-text`. The global shadcn `accent` remains the dim cyan interaction token. The floating panel uses `bg-base/95` and its existing geometry/shadow, with a right-side transform transition. Starter chips populate the draft; submitting adds only a local user message. Assistant bubble styling is prepared without simulated AI replies. Generate Spec is disabled until generation is implemented; a static demo card remains visible.
+
+### Canvas Multi-selection
+
+Drag on empty canvas to box-select fully enclosed nodes and their connected edges. Delete or Backspace removes the selected group, including edges attached to deleted nodes. Ctrl/Cmd-click adds individual nodes or edges to the selection. Hold Space while dragging, or use middle/right mouse drag, to pan. Deletions use the existing Liveblocks handler and autosave flow.
